@@ -1,3 +1,5 @@
+//Hlib Kokin id:117991
+
 #include <GL/glu.h>
 #include<GL/glut.h>
 #include<GL/gl.h>
