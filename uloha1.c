@@ -1,7 +1,7 @@
 //Hlib Kokin id:117991
 
 #include <GL/glu.h>
-#include<GL/glut.h>
+#include<GL/freeglut.h>
 #include<GL/gl.h>
 #include<stdlib.h>
 #include<stdio.h>
@@ -9,6 +9,13 @@
 const int icaskrok = 25;
 float posunX = 0.0;
 float posunY = 0.0;
+/*float matrix[16] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        posunX, posunY, 0, 1
+};*/
+const float Lmax = 4.0;
 
 void aktualizuj(const int ihod){
 	
@@ -17,7 +24,8 @@ void aktualizuj(const int ihod){
 		posunY = 0.0;
 	}
 	
-    printf("aktualizuj ihod: %d\n", ihod);
+    printf("aktualizuj ihod: %d\t", ihod);
+    printf("rychlost pohybu: %f\n", (posunX*1000*Lmax)/icaskrok);
     posunX += 0.02;
     posunY += 0.02;
     glutPostRedisplay();
@@ -29,9 +37,11 @@ void aktualizuj(const int ihod){
 void myFunc(){
     glClear(GL_COLOR_BUFFER_BIT);
 
+    glLoadIdentity();
+    glTranslatef(-5, 0, 0);
+    glScalef(2, 2, 2);
 
-
-
+    //glLoadMatrix(mat);
     //gluOrtho2D(-2.0, 2.0, -1.0, 1.0);
 
     glBegin(GL_QUADS);
@@ -53,7 +63,7 @@ void myFunc(){
 
 }
 
-const float Lmax = 4.0;
+
 
 void obsluhaResize(int sirka, int vyska){
     glViewport(0, 0, sirka, vyska);
