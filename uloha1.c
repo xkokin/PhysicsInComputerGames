@@ -38,24 +38,24 @@ void myFunc(){
     glClear(GL_COLOR_BUFFER_BIT);
 
     glLoadIdentity();
-    glTranslatef(-5, 0, 0);
-    glScalef(2, 2, 2);
+    glTranslatef(posunX, posunY, 0);
+    glScalef(1, 1, 1);
 
     //glLoadMatrix(mat);
     //gluOrtho2D(-2.0, 2.0, -1.0, 1.0);
 
     glBegin(GL_QUADS);
     	glColor3f(1.0,0.0,0.0);
-    	glVertex2f(-1.0 + posunX, -1.0 + posunY);
+    	glVertex2f(-1.0, -1.0 );
 
     	glColor3f(0.5,0.5,0.0);
-    	glVertex2f(-0.5 + posunX, -1.0 + posunY);
+    	glVertex2f(-0.5 , -1.0 );
 
     	glColor3f(0.0,0.5,0.5);
-    	glVertex2f(-0.5 + posunX, -0.5 + posunY);
+    	glVertex2f(-0.5 , -0.5 );
 
-	glColor3f(0.0,0.0,1.0);
-    	glVertex2f(-1.0 + posunX, -0.5 + posunY);
+	    glColor3f(0.0,0.0,1.0);
+    	glVertex2f(-1.0 , -0.5 );
 
     glEnd();
 
