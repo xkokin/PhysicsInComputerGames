@@ -9,8 +9,10 @@
 const int icaskrok = 25;
 float posunXa = 0.0;
 float posunXk = 0.0;
-float va = 0.02;
-float vk = 0.01;
+float va = 0.015;
+float vk = 0.0075;
+float dst = (100.0) / 2; // 100 je dlzka cesty, ked posunX je hodnota medzi 0 a 2.0
+                         // tak rozdelime 100 na dva prezrucnost pocitania
 FILE* file;
 int closed = 0;
 const float Lmax = 4.0;
@@ -23,25 +25,28 @@ const float Lmax = 4.0;
 
 
 void aktualizuj(const int ihod){
-    // najedeme cas za ktory achilles stretne korytnacku
-    //kde 0.7 je naskok korytnacky a va - vk je rozdiel medzi rychlostiami Achilesa a korytnacky
-    if(ihod==(0.7/(va-vk)) && closed != 1){
-        fclose(file);
-        closed = 1;
-    }
     // kazdych 100 ms vypiseme do suboru udaje
-    if(ihod % 4 == 0 && closed != 1){
+    if(ihod % 4 == 0){
         //zapiseme cas, nech nasa scena je 100 metrov, vtedy polohu achilesa a korytnacky nasobime 50m
-        fprintf(file, "%f\t%f\t%f\n",0.025*ihod, (posunXa)*50, (0.7+posunXk)*50);
+        fprintf(file, "%.2f\t%.2f\t%.2f\n",0.025*ihod, (posunXa)*dst, (0.7+posunXk)*dst);
+        // ukoncime zapis do suboru ked poziciia achillesa buda dalsia od pozicie korynacky
+        if (posunXa*dst >= (0.7+posunXk)*dst && closed != 1) {
+            printf("#------------------#\n"
+                   "#----STRETNUTIE----#\n"
+                   "#------------------#\n");
+            //fclose(file);
+            closed = 1;
+        }
     }
 
     if(posunXk >= 1.3 || posunXa >= 2.0) {
         posunXa = 0.0;
         posunXk = 0.0;
+        closed = 0;
     }
 
-    printf("aktualizuj ihod: %d\t", ihod);
-    printf("rychlost pohybu: %f\n", (posunXa*1000*Lmax)/icaskrok);
+    printf("time in seconds: %.2fs\n", ihod*0.025);
+
     posunXa += va;
     posunXk += vk;
     glutPostRedisplay();
@@ -80,7 +85,7 @@ void Achilles_Korytnacka(){
     glPopMatrix();
     glPushMatrix();
     glTranslatef(posunXk, 0, 0);
-    glScalef(1, 1, 1);
+    glScalef(0.5, 0.5, 0.5);
 
     //Korytnacka
     glBegin(GL_QUADS);
@@ -116,7 +121,20 @@ void obsluhaResize(int sirka, int vyska){
 }
 
 int main(int argc, char **argv){
-    file = fopen("uloha2.txt","w");
+    file = fopen("uloha2.dat","w");
+    //achilles speed
+    float v1 = (va*50)*40;
+    //tortoise speed
+    float v2 = (vk*50)*40;
+    //in what time they'll meet
+    float t = (0.7*dst)/(v1 - v2);
+    // place of meeting
+    float p = t*v1;
+
+    fprintf(file, "# Hlavicka #\n"
+                  "# %.2fm/s, %.2fm/s, %.2fm, %.2fs, %.2fm\n#----------#\n"
+                  "# Cas\tAchilles\tKorytnacka\n"
+                  "# sec\tmetry\tmetry\n", v1, v2, dst*2, t, p);
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE);
