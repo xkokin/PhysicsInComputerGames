@@ -1,152 +1,53 @@
-
 //Hlib Kokin id:117991
 
-#include <GL/glu.h>
-#include<GL/freeglut.h>
-#include<GL/gl.h>
 #include<stdlib.h>
 #include<stdio.h>
-
-const int icaskrok = 25;
-float posunXa = 0.0;
-float posunXk = 0.0;
-float va = 0.015;
-float vk = 0.0075;
-float dst = (100.0) / 2; // 100 je dlzka cesty, ked posunX je hodnota medzi 0 a 2.0
-// tak rozdelime 100 na dva prezrucnost pocitania
-FILE* file;
-int closed = 0;
-const float Lmax = 4.0;
-/*float matrix[16] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        posunX, posunY, 0, 1
-};*/
+#include <math.h>
+#include <unistd.h>
 
 
-void aktualizuj(const int ihod){
-    // kazdych 100 ms vypiseme do suboru udaje
-    if(ihod % 4 == 0){
-        //zapiseme cas, nech nasa scena je 100 metrov, vtedy polohu achilesa a korytnacky nasobime 50m
-        fprintf(file, "%.2f\t%.2f\t%.2f\n",0.025*ihod, (posunXa)*dst, (0.7+posunXk)*dst);
-        // ukoncime zapis do suboru ked poziciia achillesa buda dalsia od pozicie korynacky
-        if (posunXa*dst >= (0.7+posunXk)*dst && closed != 1) {
-            printf("#------------------#\n"
-                   "#----STRETNUTIE----#\n"
-                   "#------------------#\n");
-            //fclose(file);
-            closed = 1;
-        }
-    }
 
-    if(posunXk >= 1.3 || posunXa >= 2.0) {
-        posunXa = 0.0;
-        posunXk = 0.0;
-        closed = 0;
-    }
-
-    printf("time in seconds: %.2fs\n", ihod*0.025);
-
-    posunXa += va;
-    posunXk += vk;
-    glutPostRedisplay();
-
-    glutTimerFunc(icaskrok, aktualizuj, ihod+1);
-}
-
-
-void Achilles_Korytnacka(){
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glLoadIdentity();
-    glTranslatef(posunXa, 0, 0);
-    glScalef(1, 1, 1);
-
-    //glLoadMatrix(mat);
-    //gluOrtho2D(-2.0, 2.0, -1.0, 1.0);
-    //Achilles
-    glBegin(GL_QUADS);
-
-    glColor3f(1.0,0.0,0.0);
-    glVertex2f(-1.0, 0.0 );
-
-    glColor3f(0.5,0.5,0.0);
-    glVertex2f(-0.9 , 0.0 );
-
-    glColor3f(0.0,0.5,0.5);
-    glVertex2f(-0.9 , 0.5 );
-
-    glColor3f(0.0,0.0,1.0);
-    glVertex2f(-1.0 , 0.5 );
-
-
-    glEnd();
-
-    glPopMatrix();
-    glPushMatrix();
-    glTranslatef(posunXk, 0, 0);
-    glScalef(0.5, 0.5, 0.5);
-
-    //Korytnacka
-    glBegin(GL_QUADS);
-
-    glColor3f(1.0,0.0,0.0);
-    glVertex2f(-0.3, 0.0 );
-
-    glColor3f(0.5,0.5,0.0);
-    glVertex2f(-0.1 , 0.0 );
-
-    glColor3f(0.0,0.5,0.5);
-    glVertex2f(-0.1 , 0.2 );
-
-    glColor3f(0.0,0.0,1.0);
-    glVertex2f(-0.3 , 0.2 );
-
-    glEnd();
-
-    glutSwapBuffers();
-
-}
-
-void obsluhaResize(int sirka, int vyska){
-    glViewport(0, 0, sirka, vyska);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    if(sirka == 0) sirka++;
-    const float pomstr = ((float)vyska)/sirka;
-    gluOrtho2D(-0.2*Lmax, 0.2*Lmax, -0.2*Lmax*pomstr, 0.2*Lmax*pomstr);
-
-}
 
 int main(int argc, char **argv){
+
+    const float icaskrok = 0.5;
+    float v1, a1, v2, a2, dst;
+    scanf("%f %f %f %f %f", &v1, &a1, &v2, &a2, &dst);
+    FILE* file;
+    int closed = 0;
+
     file = fopen("uloha2.dat","w");
-    //achilles speed
-    float v1 = (va*50)*40;
-    //tortoise speed
-    float v2 = (vk*50)*40;
-    //in what time they'll meet
-    float t = (0.7*dst)/(v1 - v2);
-    // place of meeting
-    float p = t*v1;
+    float b = (v1+v2);
+    float a = (a1/2 + a2/2);
+    float c = -dst;
+
+    float d = b*b - 4 * a * c;
+    if (d < 0) printf("They will never meet\n");
+    float root1 = ( -b + sqrt(d)) / (2* a);
+    float root2 = ( -b - sqrt(d)) / (2* a);
+    float res = 0;
+    if(root1 < 0) res = root2;
+    else if(root2 < 0) res = root1;
+
+    printf("They will meet in %.2f secs\n"
+           "At x = %.2f meters", res, res*v1);
 
     fprintf(file, "# Hlavicka #\n"
-                  "# %.2fm/s, %.2fm/s, %.2fm, %.2fs, %.2fm\n#----------#\n"
-                  "# Cas\tAchilles\tKorytnacka\n"
-                  "# sec\tmetry\tmetry\n", v1, v2, dst*2, t, p);
+                  "# v1=%.2fm/s, a1=%.2fm/s, v2=%.2fm/s, a2=%.2fm/s,\n"
+                  "# dst=%.2fm t=%.2fm, rx = %.2f\n#----------#\n"
+                  ,v1, a2, v2, a2, dst, res, res * v1);
 
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE);
-    glutInitWindowSize(800, 400);
-    glutInitWindowPosition(200,150);
-    glutCreateWindow ("FYPH/Kokin: Achilles a Korytnacka");
+    int x1 = 0;
+    int x2 = 100;
+    float t = 0;
+    while(x2>x1){
+        fprintf(file, "%.1f\t%d\t%d\n", t, x1, x2);
+        sleep(icaskrok);
+        t+=0.5;
+        x1 = v1*t + a1/2*t*t;
+        x2 = 100 - v2*t + a2/2*t*t;
+    }
 
-    glutDisplayFunc(Achilles_Korytnacka);
-    glClearColor(0.0, 0.0, 1.0, 0.0);
-    glutReshapeFunc(obsluhaResize);
-    glutTimerFunc(icaskrok, aktualizuj, 0);
-    glutMainLoop();
+    fclose(file);
     return 0;
 }
