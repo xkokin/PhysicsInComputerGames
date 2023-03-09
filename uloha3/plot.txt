@@ -1,0 +1,15 @@
+ set xlabel "t/s"  
+gnuplot> set ylabel "ysur/s"  
+gnuplot> plot "uloha3.dat" using 1:2 title 'ysur' linetype 7 linecolor 4 with linespoints   
+gnuplot> replot
+gnuplot> set ylabel "ysur/metry"                                                         
+gnuplot> set xlabel "t/sekundy"                                                          
+gnuplot> replot
+gnuplot> "uloha3.dat" using 1:3 title 'vy' linetype 7 linecolor 2 with linespoints       
+         ^
+         invalid command
+
+gnuplot> plot "uloha3.dat" using 1:3 title 'vy' linetype 7 linecolor 2 with linespoints  
+gnuplot> set ylabel "vy/metrov za sekundu"                                             
+gnuplot> replot
+gnuplot> 
