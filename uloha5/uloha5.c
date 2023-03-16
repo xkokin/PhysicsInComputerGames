@@ -12,17 +12,16 @@
 const int icaskrok = 10; // 10 milisekund cas onovenia
 const float g = 9.80665; //m/s^2
 const float ay = -9.80665;
-const float PI = 3.14159265358979323846;
 const int num_segments = 100; // pre kreslenie kruhu
 const float anglePerSegment = 2.0 * 3.14159265358979323846 / 100;
 
-float r, ysur0, ysur, xsur = 0,
-        v0, v0y, v0x, v,
-        ymax, xmax = 0,
+float r, ysur0, ysur, xsur = 0, zsur,
+        v0z, v0y, v0x, v,
+        ymax, xmax = 0, zmax,
         tymax, txmax,
         vmax,
         t = -0.01,
-        alfa;
+        alfa, azimut;
 
 
 
@@ -46,13 +45,13 @@ void aktualizuj(const int ihod){
     }
 
 
-    printf("time in seconds: %.2fs, was at highest %d\n", t, atHighest);
+    printf("time in seconds: %.2fs\n", t);
 
     vy = v0y + ay*t;
     ysur = ysur0 + v0y * t + ay * t * t / 2;
     xsur = v0x * t;
+    zsur = v0z * t;
     v = sqrt(vy*vy + v0x*v0x);
-
 
     fprintf(file_txt, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", t, xsur, ysur, v0x, vy, v);
     fprintf(file_dat, "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", t, xsur, ysur, v0x, vy, v);
@@ -71,55 +70,56 @@ void Sikmy_Vrh(){
     glLoadIdentity();
 
 
-    glTranslatef(xsur/xmax, ysur/ymax, 0);
-
-    glBegin(GL_TRIANGLE_FAN);
-    for (int i = 0; i < num_segments; i++) {
-        float theta = i / anglePerSegment;
-        float x = r/100 * cosf(theta);
-        float y = r/100 * sinf(theta);
-        glVertex2f(x, y);
-    }
-    glEnd();
+    // Draw the sphere
+    glTranslatef(zsur, xsur, ysur);
+    glutWireSphere(r, 20, 20);
+    glPopMatrix();
 
     glutSwapBuffers();
 
 }
 
 void obsluhaResize(int sirka, int vyska){
-    glViewport(0, 0, sirka, vyska);
-
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
-    gluOrtho2D(0, xmax/100, 0, 1.0);
-
+    glOrtho(0.0, 50.0, 0.0, 50.0, -50.0, 50.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0.0, 0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 
 
+
+
 int main(int argc, char **argv){
+    scanf("%f %f %f %f %f", &ysur0, &v, &alfa, &azimut, &r);
+    ysur = ysur0;
+    xsur = 0;
 
-    scanf("%f %f %f %f", &ysur0, &v, &alfa, &r);
+    if (v <= 0) alfa = 360 - alfa;
 
-    float radians = alfa * M_PI / 180.0;
-    v0x = v * cos(radians);
-    v0y = v * sin(radians);
+    float radians_alfa = alfa * M_PI / 180.0;
+    float radians_azimut = azimut * M_PI / 180.0;
+    v0x = fabs(v * cos(radians_alfa));
+    v0y = fabs(v) * sin(radians_alfa);
+    v0z = fabs(v * cos(radians_azimut));
 
-    file_txt = fopen("uloha4.txt","w");
-    file_dat = fopen("uloha4.dat","w");
+    file_txt = fopen("uloha5.txt","w");
+    file_dat = fopen("uloha5.dat","w");
     if (v0y > 0) tymax = v0y / g;   //cas za ktory kruh dosihne najvyssej pozicie
     else tymax = 0.0;
 
-    printf("ysur = %.2fm, alfa = %.2f, v0y = %.2fm/s, v0x = %.2fm/s, tymax = %.2f s\n", ysur0, alfa, v0y, v0x, tymax);
 
 
-    ymax = tymax * g / 2 + ysur0; // maximalne dosiahnutelna vyska
-    txmax = 2 * v0y / g;
+
+    ymax = ysur0 + (tymax*tymax*g)/2; // maximalne dosiahnutelna vyska
+    txmax =  (fabs(v) * sin(radians_alfa) + sqrt(pow(v * sin(radians_alfa), 2) + 2 * g * ysur0)) / g;
     xmax = v0x * txmax;
+    zmax = v0z * txmax;
 
-
-    if(ysur == ymax) atHighest = 1;
+    printf("ysur = %.2fm, alfa = %.2f, v0y = %.2fm/s, v0x = %.2fm/s, tymax = %.2f s, "
+           "ymax = %.2fm, txmax = %.2f s, xmax = %.2f m\n", ysur0, alfa, v0y, v0x, tymax, ymax, txmax, xmax);
 
     printf ("Najvyssia pozicia bude: %.2f\n"
             "V case %.2f\n"
@@ -137,31 +137,21 @@ int main(int argc, char **argv){
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE);
-    int windowWidth, windowHeight;
-
-    if (xmax >= ymax) {
-        windowWidth = 1080;
-        windowHeight = 1080 * round(ymax / xmax);
-    }
-    else  {
-        windowWidth = 1080 * round(xmax / ymax);
-        windowHeight = 1080;
-    }
 
     // Determine the screen size
     int screenWidth = glutGet(GLUT_SCREEN_WIDTH);
     int screenHeight = glutGet(GLUT_SCREEN_HEIGHT);
 
     // Calculate the window position to center it
-    int windowPosX = (screenWidth - windowWidth) / 2;
-    int windowPosY = (screenHeight - windowHeight) / 2;
+    int windowPosX = (screenWidth - 1000) / 2;
+    int windowPosY = (screenHeight - 500) / 2;
 
-    glutInitWindowSize(windowWidth, windowHeight);
+    glutInitWindowSize(1000, 500);
     glutInitWindowPosition(windowPosX, windowPosY);
-    glutCreateWindow ("FYPH/Kokin: Sikmy Vrh");
+    glutCreateWindow ("FYPH/Kokin: Sikmy Vrh v 3D");
 
     glutDisplayFunc(Sikmy_Vrh);
-    glClearColor(0.0, 0.0, 1.0, 0.0);
+    glClearColor(0.2, 1.0, 1.0, 0.0);
     glutReshapeFunc(obsluhaResize);
     glutTimerFunc(icaskrok, aktualizuj, 1);
     glutMainLoop();
