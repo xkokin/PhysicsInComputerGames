@@ -68,8 +68,8 @@ void Sikmy_Vrh(){
     glClear(GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
-
+    gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    glRotatef(90, 0.0, 1.0, 0.0);
     // Draw the sphere
     glTranslatef(zsur, xsur, ysur);
     glutWireSphere(r, 20, 20);
