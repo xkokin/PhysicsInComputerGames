@@ -62,20 +62,49 @@ void aktualizuj(const int ihod){
 void Sikmy_Vrh(){
 
     //glutWireSphere
+    GLfloat vertices[][3] = { {-1,-1,-1},
+                              {1,-1,-1},
+                              {1,1,-1},
+                              {-1,1,-1},
+                              {-1,-1,1},
+                              {1,-1,1},
+                              {1,1,1},
+                              {-1,1,1} };
+
+    GLfloat colors[][3] = { {1,0,0},
+                            {0,1,0},
+                            {0,0,1},
+                            {1,1,0},
+                            {1,0,1},
+                            {0,1,1} };
+    GLubyte indices[][4] = { {0,3,2,1},
+                             {2,3,7,6},
+                             {0,4,7,3},
+                             {1,2,6,5},
+                             {4,5,6,7},
+                             {0,1,5,4} };
+
 
     glClear(GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
-
-
     glLoadIdentity();
-    glLineWidth(1.0f);
-    glColor3f(0, 0, 0);
-    // islo mi to lepsie ked pouzival gluLookAt, takze vynechal glRotatef
     gluLookAt(xmax/2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-    //glRotatef(90, 0.0, 1.0, 1.0);
-    // Draw the sphere
+
+    glLineWidth(1.0f);
+
+
     glTranslatef(xsur, ysur, zsur);
-    glutWireSphere(r, 20, 20);
+    for(int i=0; i<6; i++)
+    {
+        glBegin(GL_QUADS);
+        glColor3fv(colors[i]);
+        glVertex3fv(vertices[indices[i][0]]);
+        glVertex3fv(vertices[indices[i][1]]);
+        glVertex3fv(vertices[indices[i][2]]);
+        glVertex3fv(vertices[indices[i][3]]);
+        glEnd();
+    }
+
     glPopMatrix();
 
     //glClear(GL_COLOR_BUFFER_BIT);
@@ -135,8 +164,8 @@ int main(int argc, char **argv){
     v0y = fabs(v * cos(radians_alfa) * sin(radians_azimut));
     v0z = fabs(v) * sin(radians_alfa);
 
-    file_txt = fopen("uloha5.txt","w");
-    file_dat = fopen("uloha5.dat","w");
+    file_txt = fopen("uloha6.txt","w");
+    file_dat = fopen("uloha6.dat","w");
     if (v0z > 0) thmax = v0z / g;   //cas za ktory kruh dosihne najvyssej pozicie
     else thmax = 0.0;
 
