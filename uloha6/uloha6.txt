@@ -1,5 +1,5 @@
 #-Hlavicka-#
-# y0 = 10.00m, v0 = 45.00m/s, alfa = 45 degrees, azimut = 30 degrees, r = 1.00m,
+# y0 = 10.00m, v0 = 45.00m/s, alfa = 45 degrees, azimut = 30 degrees, r = 2.00m,
 # tD = 6.79s, ymax = 61.62m, tm = 3.24s, xmax = 108.03
 #----------#
 -0.01	0.00	10.00	15.91	31.82	45.00

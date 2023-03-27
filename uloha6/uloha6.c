@@ -28,7 +28,7 @@ FILE* file_dat;
 void aktualizuj(const int ihod){
     float vy = 0;
     t += 0.01; //cas od zaciatku;
-    omega+=1;
+    omega+=o;
     if (omega > 360) omega = 0;
 
     //if (t >= tmax && atHighest != 1) atHighest = 1;
@@ -59,134 +59,103 @@ void aktualizuj(const int ihod){
 
 void Sikmy_Vrh(){
 
-
-    GLfloat vertices[][3] = { {-1,-1,-1},
-                              {1,-1,-1},
-                              {1,1,-1},
-                              {-1,1,-1},
-                              {-1,-1,1},
-                              {1,-1,1},
-                              {1,1,1},
-                              {-1,1,1},
-
-                              {0, 0, 0},
-                              {xmax, 0, 0},
-                              {xmax, 0, zmax},
-                              {0, 0, zmax}
-    };
-
-    GLfloat colors[][3] = {{1.0, 0.0, 0.0},
-                           {0.0, 0.0, 1.0},
-                           {1.0, 0.0, 1.0},
-                           {1.0, 1.0, 0.0},
-                           {0.0, 1.0, 0.0},
-                           {0.0, 1.0, 1.0},
-                           {1.0, 1.0, 1.0}
-    };
-    GLfloat col_lines[][3] = {
-            {1.0, 0.0, 0.0},
-            {0.0, 0.0, 1.0},
-            {1.0, 1.0, 0.0}
-    };
-    GLubyte indices[][4] = { {0,3,2,1},
-                             {2,3,7,6},
-                             {0,4,7,3},
-                             {1,2,6,5},
-                             {4,5,6,7},
-                             {0,1,5,4},
-
-
-                             {11, 10, 9, 8}
-    };
-
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
+    //glDisable(GL_CULL_FACE);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glPushMatrix();
-    gluLookAt(xmax/2, ymax, zmax*2, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0);
-//    gluLookAt(xmax/2, ymax/2, zmax/2, xmax, ymax, zmax, 1.0, 1.0, 1.0);
-
-    glLineWidth(1.0f);
+    gluLookAt(zmax*2, xmax/2, ymax/4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 
 
-    glTranslatef(xsur, ysur, zsur);
-    glRotatef(omega, 1.0, 1.0, 1.0);
-    glScalef(r, r, r);
-    for(int i=0; i<6; i++)
-    {
-        glBegin(GL_POLYGON);
 
-        glColor3fv(colors[i]);
-
-        glVertex3fv(vertices[indices[i][0]]);
-        glVertex3fv(vertices[indices[i][1]]);
-        glVertex3fv(vertices[indices[i][2]]);
-        glVertex3fv(vertices[indices[i][3]]);
-        glEnd();
-    }
-
-    glPopMatrix();
-
-//    glLoadIdentity();
-    glPushMatrix();
-
-    glBegin(GL_POLYGON);
-    glColor3fv(colors[6]);
-
-    glVertex3fv(vertices[indices[6][0]]);
-    glVertex3fv(vertices[indices[6][1]]);
-    glVertex3fv(vertices[indices[6][2]]);
-    glVertex3fv(vertices[indices[6][3]]);
-    glEnd();
-    glPopMatrix();
-
-//    glLoadIdentity();
-    glPushMatrix();
-    glEnable(GL_LINE);
     glLineWidth(6.0f);
     glBegin(GL_LINES);
 
 
-    glColor3fv(col_lines[1]);
+    glColor3f(0.0, 0.0, 1.0);
     glVertex3f(0, ymax+r, 0);
-    glColor3fv(col_lines[1]);
-    glVertex3f(0, 0, 0);
+    glVertex3f(0, -ymax-r, 0);
 
-    glColor3fv(col_lines[2]);
+    glColor3f(1.0, 1.0, 0.0);
     glVertex3f(xmax+r, 0, 0);
-    glColor3fv(col_lines[2]);
-    glVertex3f(0, 0, 0);
+    glVertex3f(-xmax-r, 0, 0);
 
-    glColor3fv(col_lines[0]);
-    glVertex3f(xmax+r, 0, zmax+r);
-    glColor3fv(col_lines[0]);
-    glVertex3f(0, 0, 0);
+    glColor3f(1.0, 0.0, 0.0);
+    glVertex3f(0, 0, zmax+r);
+    glVertex3f(0, 0, -zmax-r);
 
     glEnd();
 
 
+    glPushMatrix();
+
+    glLineWidth(1.0f);
+
+
+    glTranslatef(zsur, xsur, ysur);
+    glRotatef(omega, 0.0, 0.0, 1.0);
+    glScalef(r*2, r*2, r*2);
+
+    glBegin(GL_QUADS);
+
+    // Front face (red) to z
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    glVertex3f(0.5f, 0.5f, 0.5f);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+
+    // Back face (blue) to 0 from z
+    glColor3f(1.0f, 0.0f, 1.0f);
+    glVertex3f(-0.5f, -0.5f, -0.5f);
+    glVertex3f(-0.5f, 0.5f, -0.5f);
+    glVertex3f(0.5f, 0.5f, -0.5f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+
+    // Left face (cyan) to - x
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glVertex3f(-0.5f, -0.5f, -0.5f);
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+    glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Right face (red) to x
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+    glVertex3f(0.5f, 0.5f, -0.5f);
+    glVertex3f(0.5f, 0.5f, 0.5f);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+
+    // Top face (magenta) to +y
+    glColor3f(0.0f, 1.0f, 0.0f);
+    glVertex3f(-0.5f, 0.5f, -0.5f);
+    glVertex3f(-0.5f, 0.5f, 0.5f);
+    glVertex3f(0.5f, 0.5f, 0.5f);
+    glVertex3f(0.5f, 0.5f, -0.5f);
+
+    // Bottom face (cyan)to 0 from y
+    glColor3f(0.7f, 1.0f, 0.0f);
+    glVertex3f(-0.5f, -0.5f, -0.5f);
+    glVertex3f(0.5f, -0.5f, -0.5f);
+    glVertex3f(0.5f, -0.5f, 0.5f);
+    glVertex3f(-0.5f, -0.5f, 0.5f);
+
+    glEnd();
 
     glutSwapBuffers();
 
 }
 
 void obsluhaResize(int sirka, int vyska){
+    glViewport(0, 0, sirka, vyska);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     float pomstr = (float)sirka/(float)vyska;
 
-//    if (ymax / vyska > xmax / sirka) {
-//        glOrtho(0.0, (ymax+r) / pomstr, 0.0, ymax+r, -zmax, zmax);
-//    }
-//    else if (ymax / vyska < xmax / sirka) {
-//        glOrtho(0.0, xmax+r, 0.0, (xmax+r)* pomstr, -zmax, zmax);
-//    }
     float theta = atan(ymax / zmax) * 180 / M_PI * 2;
     printf("theta: %.2f\n", theta);
-    gluPerspective(theta, pomstr, zmax, 0);
-    glViewport(0, 0, sirka, vyska);
+    gluPerspective(theta, pomstr, 0.1, zmax*3);
+//    gluPerspective(theta, pomstr, zmax, zmax*3);
+
 
 }
 
