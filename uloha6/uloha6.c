@@ -28,8 +28,8 @@ FILE* file_dat;
 void aktualizuj(const int ihod){
     float vy = 0;
     t += 0.01; //cas od zaciatku;
-    omega+=o;
-    if (omega > 360) omega = 0;
+    omega += o * 0.01 * ihod;
+    omega = fmod(omega, 360.0f);
 
     //if (t >= tmax && atHighest != 1) atHighest = 1;
 
@@ -63,10 +63,23 @@ void Sikmy_Vrh(){
     //glDisable(GL_CULL_FACE);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(zmax*2, xmax/2, ymax/4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    //gluLookAt(zmax*2, xmax, ymax/4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    //------------------------------------------------------
+    // glRotatef
+    glPushMatrix();
+    float lookAtX = -zmax * 2;
+    float lookAtY = -xmax;
+    float lookAtZ = -ymax / 4;
 
+    float rxy = sqrt(lookAtX * lookAtX + lookAtY * lookAtY);
+    float angleZ = atan2(lookAtY, lookAtX) * 180.0f / M_PI;
+    float angleX = atan2(lookAtZ, rxy) * 180.0f / M_PI;
 
-
+    glTranslatef(-zmax * 2, -xmax, -ymax / 4);
+    glRotatef(angleZ, 0.0f, 0.0f, 1.0f);
+    glRotatef(angleX, 1.0f, 0.0f, 0.0f);
+    glPopMatrix();
+    //------------------------------------------------------
     glLineWidth(6.0f);
     glBegin(GL_LINES);
 
