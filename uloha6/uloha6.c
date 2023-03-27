@@ -9,20 +9,16 @@
 const int icaskrok = 10; // 10 milisekund cas onovenia
 const float g = 9.80665; //m/s^2
 const float ay = -9.80665;
-const int num_segments = 100; // pre kreslenie kruhu
-const float anglePerSegment = 2.0 * 3.14159265358979323846 / 100;
+
 
 float r, ysur0, ysur, xsur = 0, zsur,
-        v0z, v0y, v0x, v,
+        v0z, v0y, v0x, v, o,
         ymax, xmax = 0, zmax,
         thmax, tdmax,
         vmax,
         t = -0.01,
         alfa, azimut, omega = 0.0;
 
-
-
-int atHighest; // boolean premenna ktora povie ci objekt uz bol v najvyssom bode
 
 FILE* file_txt; // zapisujem data do dvoch suborov, txt na odovzdanie a dat na vytvorenie grafu kedze
 // ja nemozem spravit gnuplot z txt
@@ -33,6 +29,7 @@ void aktualizuj(const int ihod){
     float vy = 0;
     t += 0.01; //cas od zaciatku;
     omega+=1;
+    if (omega > 360) omega = 0;
 
     //if (t >= tmax && atHighest != 1) atHighest = 1;
 
@@ -70,14 +67,22 @@ void Sikmy_Vrh(){
                               {-1,-1,1},
                               {1,-1,1},
                               {1,1,1},
-                              {-1,1,1} };
+                              {-1,1,1},
+
+                              {0, 0, 0},
+                              {xmax, 0, 0},
+                              {xmax, 0, zmax},
+                              {0, 0, zmax}
+    };
 
     GLfloat colors[][3] = {{1.0, 0.0, 0.0},
                            {0.0, 0.0, 1.0},
                            {1.0, 0.0, 1.0},
                            {1.0, 1.0, 0.0},
                            {0.0, 1.0, 0.0},
-                           {0.0, 1.0, 1.0}};
+                           {0.0, 1.0, 1.0},
+                           {1.0, 1.0, 1.0}
+    };
     GLfloat col_lines[][3] = {
             {1.0, 0.0, 0.0},
             {0.0, 0.0, 1.0},
@@ -88,24 +93,31 @@ void Sikmy_Vrh(){
                              {0,4,7,3},
                              {1,2,6,5},
                              {4,5,6,7},
-                             {0,1,5,4} };
+                             {0,1,5,4},
 
 
-    glClear(GL_COLOR_BUFFER_BIT);
+                             {11, 10, 9, 8}
+    };
+
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glPushMatrix();
-    gluLookAt(0.0, 0.0, zmax, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    gluLookAt(xmax/2, ymax, zmax*2, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0);
+//    gluLookAt(xmax/2, ymax/2, zmax/2, xmax, ymax, zmax, 1.0, 1.0, 1.0);
 
     glLineWidth(1.0f);
 
 
     glTranslatef(xsur, ysur, zsur);
-    glRotatef(omega, 0.0, 0.0, 1.0);
+    glRotatef(omega, 1.0, 1.0, 1.0);
     glScalef(r, r, r);
     for(int i=0; i<6; i++)
     {
-        glBegin(GL_QUADS);
+        glBegin(GL_POLYGON);
+
         glColor3fv(colors[i]);
 
         glVertex3fv(vertices[indices[i][0]]);
@@ -117,27 +129,41 @@ void Sikmy_Vrh(){
 
     glPopMatrix();
 
-    //glClear(GL_COLOR_BUFFER_BIT);
-
-    glLoadIdentity();
+//    glLoadIdentity();
     glPushMatrix();
+
+    glBegin(GL_POLYGON);
+    glColor3fv(colors[6]);
+
+    glVertex3fv(vertices[indices[6][0]]);
+    glVertex3fv(vertices[indices[6][1]]);
+    glVertex3fv(vertices[indices[6][2]]);
+    glVertex3fv(vertices[indices[6][3]]);
+    glEnd();
+    glPopMatrix();
+
+//    glLoadIdentity();
+    glPushMatrix();
+    glEnable(GL_LINE);
     glLineWidth(6.0f);
     glBegin(GL_LINES);
-    glColor3fv(col_lines[0]);
-    glVertex3f(0, 0, zmax+r);
-    glColor3fv(col_lines[0]);
-    glVertex3f(0, 0, 0);
 
-    glColor3fv(col_lines[2]);
+
+    glColor3fv(col_lines[1]);
     glVertex3f(0, ymax+r, 0);
+    glColor3fv(col_lines[1]);
+    glVertex3f(0, 0, 0);
+
+    glColor3fv(col_lines[2]);
+    glVertex3f(xmax+r, 0, 0);
     glColor3fv(col_lines[2]);
     glVertex3f(0, 0, 0);
-    glEnd();
 
-    glColor3fv(col_lines[1]);
-    glVertex3f(xmax+r, 0, 0);
-    glColor3fv(col_lines[1]);
+    glColor3fv(col_lines[0]);
+    glVertex3f(xmax+r, 0, zmax+r);
+    glColor3fv(col_lines[0]);
     glVertex3f(0, 0, 0);
+
     glEnd();
 
 
@@ -149,23 +175,30 @@ void Sikmy_Vrh(){
 void obsluhaResize(int sirka, int vyska){
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    float pomstr = (float)vyska/(float)sirka;
+    float pomstr = (float)sirka/(float)vyska;
 
-    if (ymax / vyska > xmax / sirka) {
-        glOrtho(0.0, (ymax+r) / pomstr, 0.0, ymax+r, -zmax, zmax);
-    }
-    else if (ymax / vyska < xmax / sirka) {
-        glOrtho(0.0, xmax+r, 0.0, (xmax+r)* pomstr, -zmax, zmax);
-    }
-
-    //gluPerspective(0, pomstr, zmax, zmax);
+//    if (ymax / vyska > xmax / sirka) {
+//        glOrtho(0.0, (ymax+r) / pomstr, 0.0, ymax+r, -zmax, zmax);
+//    }
+//    else if (ymax / vyska < xmax / sirka) {
+//        glOrtho(0.0, xmax+r, 0.0, (xmax+r)* pomstr, -zmax, zmax);
+//    }
+    float theta = atan(ymax / zmax) * 180 / M_PI * 2;
+    printf("theta: %.2f\n", theta);
+    gluPerspective(theta, pomstr, zmax, 0);
     glViewport(0, 0, sirka, vyska);
 
 }
 
+void init()
+{
+    glClearColor(0.0, 0.0, 0.0, 0.0); // Set clear color to black
+    glEnable(GL_DEPTH_TEST); // Enable depth testing
+}
+
 
 int main(int argc, char **argv){
-    scanf("%f %f %f %f %f", &ysur, &v, &alfa, &azimut, &r);
+    scanf("%f %f %f %f %f %f", &ysur, &v, &alfa, &azimut, &r, &o);
     ysur0 = ysur;
     xsur = 0;
 
@@ -208,22 +241,14 @@ int main(int argc, char **argv){
 
 
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE);
-
-    // Determine the screen size
-//    int screenWidth = glutGet(GLUT_SCREEN_WIDTH);
-//    int screenHeight = glutGet(GLUT_SCREEN_HEIGHT);
-//
-//    // Calculate the window position to center it
-//    int windowPosX = (screenWidth - 1000) / 2;
-//    int windowPosY = (screenHeight - 500) / 2;
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
     glutInitWindowSize(1000, 500);
     glutInitWindowPosition(0, 100);
     glutCreateWindow ("FYPH/Kokin: Sikmy Vrh v 3D");
-
+    init();
     glutDisplayFunc(Sikmy_Vrh);
-    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
     glutReshapeFunc(obsluhaResize);
     glutTimerFunc(icaskrok, aktualizuj, 1);
     glutMainLoop();
