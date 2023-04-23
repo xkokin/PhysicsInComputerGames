@@ -28,8 +28,8 @@ FILE* file_dat;
 void aktualizuj(const int ihod){
     float vy = 0;
     t += 0.01; //cas od zaciatku;
-    omega+=o;
-    if (omega > 360) omega = 0;
+    omega += o * 0.01;
+    omega = fmod(omega, 360.0f);
 
     //if (t >= tmax && atHighest != 1) atHighest = 1;
 
@@ -63,10 +63,23 @@ void Sikmy_Vrh(){
     //glDisable(GL_CULL_FACE);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(zmax*2, xmax/2, ymax/4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    //gluLookAt(zmax*2, xmax, ymax/4, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+    //------------------------------------------------------
+    // glRotatef
+    // Posunem kameru rovnako posuvu v gluLookAt
+    glTranslatef(-xmax/2, -ymax/4, -zmax*2);
+    //najprv otocime okolo osi x tak aby sme boli v pravidelnej polohe
+    //ale zatial sme dohory nohami
+    glRotatef(90, 1.0f, 0.0f, 0.0f);
+    //takze otocime sa o 180 stupnov kokolo osi y na ktoru sme prestahovali sa po predchadzajucem volani Rotatef
+    glRotatef(180, 0.0f, 1.0f, 0.0f);
+    //ale stale sme na opacnej strane, takze otozime sa do susednej casti a budfeme pozerat nasu scenu
+    glRotatef(90, 0.0f, 0.0f, 1.0f);
+
+    glPopMatrix();
 
 
-
+    //------------------------------------------------------
     glLineWidth(6.0f);
     glBegin(GL_LINES);
 
